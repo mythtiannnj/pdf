@@ -1,0 +1,22 @@
+{
+  "site": {
+    "name": "PDF Converter",
+    "tagline": "Convert URLs, HTML, and files into beautiful PDFs",
+    "version": "1.0.0"
+  },
+  "pdfshift": {
+    "apiKey": "sk_7d8bd3f7e9394c644ac6ca16fda554d7c7ae032d",
+    "endpoint": "https://api.pdfshift.io/v3/convert/pdf",
+    "sandbox": true,
+    "defaultOptions": {
+      "format": "A4",
+      "margin": "1cm",
+      "landscape": false,
+      "use_print": false
+    }
+  },
+  "upload": {
+    "maxFileSizeMB": 5,
+    "allowedExtensions": ["html", "htm", "txt", "md", "markdown", "png", "jpg", "jpeg", "webp"]
+  }
+}
