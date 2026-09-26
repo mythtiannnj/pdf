@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Converter · PDF Converter</title>
+  <link rel="icon" href="/assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/themes.css" />
+  <link rel="stylesheet" href="/assets/css/ui.css" />
+  <style>
+    .converter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+    @media (max-width: 900px) { .converter-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      padding: 1.4rem 1.5rem;
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .panel h3 {
+      font-family: var(--font-mono);
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-dim);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel h3 .left { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .panel h3 .left::before {
+      content: ''; width: 20px; height: 1px;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 6px var(--accent-cyan);
+    }
+    .mode-badge {
+      font-family: var(--font-mono);
+      font-size: 0.58rem; font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      background: rgba(34, 211, 238, 0.12);
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      color: var(--accent-cyan);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    label.field-label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.45rem;
+    }
+    textarea, input[type="text"], select {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      outline: none;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      resize: vertical;
+    }
+    textarea:focus, input:focus, select:focus {
+      border-color: rgba(34, 211, 238, 0.5);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
+    }
+    textarea { min-height: 100px; }
+
+    /* Filename input with .pdf suffix */
+    .filename-input {
+      display: flex;
+      align-items: stretch;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      overflow: hidden;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .filename-input:focus-within {
+      border-color: rgba(34, 211, 238, 0.5);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
+    }
+    .filename-input input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 0.85rem 1rem;
+      border-radius: 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text);
+      outline: none;
+    }
+    .filename-input .suffix {
+      display: inline-flex;
+      align-items: center;
+      padding: 0 0.9rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--accent-cyan);
+      background: rgba(34, 211, 238, 0.08);
+      border-left: 1px solid var(--border);
+    }
+
+    /* Divider with "or" */
+    .or-divider {
+      display: flex; align-items: center; gap: 0.8rem;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .presets { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .preset {
+      font-family: var(--font-mono);
+      font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.35rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-2);
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .preset:hover {
+      color: var(--accent-cyan);
+      border-color: rgba(34, 211, 238, 0.45);
+      background: rgba(34, 211, 238, 0.08);
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.9rem;
+    }
+    .toggle-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.82rem; color: var(--text-dim);
+      cursor: pointer;
+    }
+    .toggle-row input { accent-color: var(--accent-cyan); width: 16px; height: 16px; cursor: pointer; }
+
+    /* Preview */
+    .preview-wrap {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: rgba(8, 12, 20, 0.6);
+      border: 1px solid var(--border);
+      min-height: 480px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    #pdf-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #fff;
+      display: none;
+    }
+    .preview-wrap.has-pdf #pdf-frame { display: block; }
+    .empty-state {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.6rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    .empty-state i { font-size: 2rem; opacity: 0.5; }
+
+    .stats {
+      display: flex; gap: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .stats span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .stats b { color: var(--text); font-weight: 600; }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(11, 15, 25, 0.3);
+      border-top-color: #0b0f19;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="ambient">
+    <div class="blob blob-cyan"></div>
+    <div class="blob blob-blue"></div>
+    <div class="blob blob-purple"></div>
+  </div>
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark"><i class="fas fa-file-pdf"></i></span>
+      <div class="brand-text">PDF Converter <small>Engine</small></div>
+    </div>
+    <div class="topbar-right">
+      <div class="theme-toggle">
+        <button data-theme="dark" class="active"><i class="fas fa-circle-half-stroke"></i> Dark</button>
+        <button data-theme="glass"><i class="fas fa-droplet"></i> Glass</button>
+      </div>
+      <button class="icon-btn hamburger" id="hamburger-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path class="menu-line top-line" d="M4 6h16"/>
+          <path class="menu-line middle-line" d="M4 12h16"/>
+          <path class="menu-line bottom-line" d="M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <aside class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div class="brand">
+        <span class="brand-mark"><i class="fas fa-file-pdf"></i></span>
+        <div>
+          <h2>PDF Converter</h2>
+          <small>Engine</small>
+        </div>
+      </div>
+      <button class="icon-btn" id="drawer-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-section-label">Navigation</div>
+      <nav class="drawer-nav">
+        <a href="/">
+          <span class="nav-icon"><i class="fas fa-house"></i></span>
+          <span class="nav-label">Home <small>Landing page</small></span>
+        </a>
+        <a href="/converter" class="active">
+          <span class="nav-icon"><i class="fas fa-file-arrow-up"></i></span>
+          <span class="nav-label">Converter <small>Files & URLs → PDF</small></span>
+        </a>
+      </nav>
+    </div>
+    <div class="drawer-footer"><span class="status-dot"></span> PDFShift · Online</div>
+  </aside>
+
+  <div class="main-shell">
+    <div class="container">
+      <h1 style="font-family:var(--font-serif);font-size:clamp(2rem,4vw,2.8rem);font-weight:600;letter-spacing:-0.02em;margin-bottom:0.4rem;">
+        <span class="brand-gradient-text">Convert to PDF</span>
+      </h1>
+      <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:2rem;">
+        Upload a file or paste a URL / HTML — then name your PDF.
+      </p>
+
+      <div class="converter-grid">
+        <!-- LEFT: Input -->
+        <div class="panel glass animate-reveal">
+          <h3><span class="left">Source</span><span class="mode-badge" id="mode-badge">URL / HTML</span></h3>
+
+          <!-- File upload -->
+          <div>
+            <label class="field-label">Upload a file</label>
+            <div class="dropzone" id="dropzone">
+              <i class="fas fa-cloud-arrow-up"></i>
+              <div class="dz-main">Drop a file here, or click to browse</div>
+              <div class="dz-sub">HTML · TXT · MD · PNG · JPG · WEBP · max 5 MB</div>
+              <input type="file" id="file-input" hidden accept=".html,.htm,.txt,.md,.markdown,.png,.jpg,.jpeg,.webp" />
+            </div>
+            <div class="file-chip" id="file-chip">
+              <i class="fas fa-file"></i>
+              <span class="name" id="file-chip-name"></span>
+              <button id="file-clear" title="Remove file"><i class="fas fa-xmark"></i></button>
+            </div>
+          </div>
+
+          <div class="or-divider">or</div>
+
+          <!-- URL / HTML -->
+          <div>
+            <label class="field-label" for="source">URL or HTML</label>
+            <textarea id="source" placeholder="https://en.wikipedia.org/wiki/Philosophy&#10;— or paste raw HTML —"></textarea>
+          </div>
+
+          <div>
+            <label class="field-label">Quick presets</label>
+            <div class="presets">
+              <button class="preset" data-preset="https://en.wikipedia.org/wiki/Philosophy">Wikipedia</button>
+              <button class="preset" data-preset="https://plato.stanford.edu/entries/plato/">SEP: Plato</button>
+              <button class="preset" data-preset="https://philosophersapi.com/api/philosophers">PhilosophersAPI</button>
+            </div>
+          </div>
+
+          <!-- Filename -->
+          <div>
+            <label class="field-label" for="filename">Output filename</label>
+            <div class="filename-input">
+              <input type="text" id="filename" placeholder="my-document" maxlength="80" />
+              <span class="suffix">.pdf</span>
+            </div>
+          </div>
+
+          <!-- Options -->
+          <div class="options-grid">
+            <div>
+              <label class="field-label" for="format">Format</label>
+              <select id="format">
+                <option>A4</option>
+                <option>Letter</option>
+                <option>A3</option>
+                <option>A5</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="margin">Margin</label>
+              <select id="margin">
+                <option value="1cm">1 cm</option>
+                <option value="0.5cm">0.5 cm</option>
+                <option value="2cm">2 cm</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="toggle-row">
+            <input type="checkbox" id="landscape" />
+            <label for="landscape">Landscape</label>
+          </div>
+          <div class="toggle-row">
+            <input type="checkbox" id="use_print" />
+            <label for="use_print">Use print CSS</label>
+          </div>
+
+          <button id="convert-btn" class="btn btn-primary" style="width:100%;justify-content:center;">
+            <span class="spinner" id="convert-spinner"></span>
+            <i class="fas fa-bolt"></i>
+            <span id="convert-label">Convert to PDF</span>
+          </button>
+        </div>
+
+        <!-- RIGHT: Preview -->
+        <div class="panel glass animate-reveal" style="animation-delay:0.1s;">
+          <h3><span class="left">Preview</span></h3>
+
+          <div class="preview-wrap" id="preview-wrap">
+            <div class="preview-header">
+              <span>Output</span>
+              <a id="download-link" class="preset" style="display:none;text-decoration:none;">
+                <i class="fas fa-download"></i> Download
+              </a>
+            </div>
+            <div class="empty-state" id="empty-state">
+              <i class="fas fa-file-pdf"></i>
+              <div>Your generated PDF will appear here.</div>
+            </div>
+            <iframe id="pdf-frame" title="PDF preview"></iframe>
+          </div>
+
+          <div class="stats">
+            <span><i class="fas fa-weight-hanging"></i> Size: <b id="stat-size">—</b></span>
+            <span><i class="fas fa-stopwatch"></i> Time: <b id="stat-time">—</b></span>
+            <span><i class="fas fa-coins"></i> Credits: <b id="stat-credits">—</b></span>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>© 2025 PDF Converter · Powered by <a href="https://pdfshift.io" target="_blank" rel="noopener">PDFShift</a></p>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/assets/js/theme.js"></script>
+  <script src="/assets/js/menu.js"></script>
+  <script src="/assets/js/converter.js"></script>
+</body>
+</html>
